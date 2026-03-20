@@ -93,7 +93,8 @@ class _PythonBackend:
         coverage = _crop(counts, padding)
 
         scale = float(np.max(np.abs(mean_r))) if mean_r.size else 1.0
-        denom = np.maximum(mean_r, np.finfo(np.float64).eps * max(1.0, scale))
+        scale = max(1.0, scale)
+        denom = np.maximum(mean_r, np.finfo(np.float64).eps * scale)
         T = mean_s / denom
         f = (mean_s - mean_r) ** 2
         dx = np.zeros_like(T)
@@ -101,7 +102,8 @@ class _PythonBackend:
         df = None
         if include_df:
             var_scale = float(np.max(var_r)) if var_r.size else 1.0
-            var_floor = np.finfo(np.float64).eps * max(1.0, var_scale)
+            var_scale = max(1.0, var_scale)
+            var_floor = np.finfo(np.float64).eps * var_scale
             df = np.sqrt(np.maximum(var_s, 0.0) / np.maximum(var_r, var_floor))
         return {
             "T": T,
