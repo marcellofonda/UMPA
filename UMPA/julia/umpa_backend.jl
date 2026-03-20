@@ -65,12 +65,14 @@ function umpa_match(sample, ref, mask, positions, full_shape, padding; include_d
     var_r = _crop(var_r, padding)
     coverage = _crop(coverage, padding)
 
-    denom = max.(mean_r, eps(Float64))
+    scale = isempty(mean_r) ? 1.0 : max(maximum(abs.(mean_r)), 1.0)
+    denom = max.(mean_r, eps(Float64) * scale)
     T = mean_s ./ denom
     f = (mean_s .- mean_r) .^ 2
     dx = zeros(Float64, size(T))
     dy = zeros(Float64, size(T))
-    df = include_df ? sqrt.(max.(var_s, 0.0) ./ max.(var_r, eps(Float64))) : nothing
+    var_scale = isempty(var_r) ? 1.0 : max(maximum(var_r), 1.0)
+    df = include_df ? sqrt.(max.(var_s, 0.0) ./ max.(var_r, eps(Float64) * var_scale)) : nothing
 
     return Dict(
         "T" => T,

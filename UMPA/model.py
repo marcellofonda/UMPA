@@ -4,6 +4,9 @@ from functools import lru_cache
 
 import numpy as np
 
+_DEBUG_D_SIZE = 25
+_DEBUG_A_SIZE = 16
+
 
 def _normalize_frames(frames, name):
     if isinstance(frames, np.ndarray):
@@ -89,14 +92,17 @@ class _PythonBackend:
         var_r = _crop(var_r, padding)
         coverage = _crop(counts, padding)
 
-        denom = np.maximum(mean_r, np.finfo(np.float64).eps)
+        scale = float(np.max(np.abs(mean_r))) if mean_r.size else 1.0
+        denom = np.maximum(mean_r, np.finfo(np.float64).eps * max(1.0, scale))
         T = mean_s / denom
         f = (mean_s - mean_r) ** 2
         dx = np.zeros_like(T)
         dy = np.zeros_like(T)
         df = None
         if include_df:
-            df = np.sqrt(np.maximum(var_s, 0.0) / np.maximum(var_r, np.finfo(np.float64).eps))
+            var_scale = float(np.max(var_r)) if var_r.size else 1.0
+            var_floor = np.finfo(np.float64).eps * max(1.0, var_scale)
+            df = np.sqrt(np.maximum(var_s, 0.0) / np.maximum(var_r, var_floor))
         return {
             "T": T,
             "dx": dx,
@@ -113,7 +119,13 @@ def _load_julia():
     from juliacall import Main as jl
 
     backend_path = os.path.join(os.path.dirname(__file__), "julia", "umpa_backend.jl")
-    jl.include(backend_path)
+    try:
+        jl.include(backend_path)
+    except Exception as exc:
+        raise RuntimeError(
+            f"Failed to load Julia backend from {backend_path}. "
+            "Ensure the Julia runtime is available and the file is valid."
+        ) from exc
     return jl
 
 
@@ -254,8 +266,8 @@ class UMPAModelBase:
         return {
             "values": values,
             "err": np.zeros(sh, dtype=np.int32),
-            "debug_d": np.zeros(sh + (25,), dtype=np.float64),
-            "debug_a": np.zeros(sh + (16,), dtype=np.float64),
+            "debug_d": np.zeros(sh + (_DEBUG_D_SIZE,), dtype=np.float64),
+            "debug_a": np.zeros(sh + (_DEBUG_A_SIZE,), dtype=np.float64),
             "debug_Ncalls": np.zeros(sh, dtype=np.int32),
         }
 
