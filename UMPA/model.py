@@ -6,6 +6,7 @@ import numpy as np
 _DEBUG_D_SIZE = 25
 _DEBUG_A_SIZE = 16
 _JULIA_MAIN = None
+_BACKEND = None
 
 
 def _normalize_frames(frames, name):
@@ -104,8 +105,7 @@ class _PythonBackend:
             var_scale = float(np.max(var_r)) if var_r.size else 1.0
             var_scale = max(1.0, var_scale)
             var_floor = np.finfo(np.float64).eps * var_scale
-            denom_var = var_r if not np.any(var_r <= 0) else np.maximum(var_r, var_floor)
-            df = np.sqrt(np.maximum(var_s, 0.0) / denom_var)
+            df = np.sqrt(np.maximum(var_s, 0.0) / np.maximum(var_r, var_floor))
         return {
             "T": T,
             "dx": dx,
@@ -159,17 +159,18 @@ class _JuliaBackend:
 
 
 def _get_backend():
-    if getattr(_get_backend, "_backend", None) is not None:
-        return _get_backend._backend
+    global _BACKEND
+    if _BACKEND is not None:
+        return _BACKEND
     if os.environ.get("UMPA_DISABLE_JULIA") == "1":
-        _get_backend._backend = _PythonBackend()
-        return _get_backend._backend
+        _BACKEND = _PythonBackend()
+        return _BACKEND
     try:
-        _get_backend._backend = _JuliaBackend()
+        _BACKEND = _JuliaBackend()
     except (ImportError, RuntimeError, OSError) as exc:
         warnings.warn(f"Julia backend unavailable, falling back to NumPy. ({exc})")
-        _get_backend._backend = _PythonBackend()
-    return _get_backend._backend
+        _BACKEND = _PythonBackend()
+    return _BACKEND
 
 
 class UMPAModelBase:

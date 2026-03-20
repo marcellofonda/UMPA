@@ -8,8 +8,7 @@ import UMPA
 
 
 def _reset_backend():
-    if hasattr(UMPA.model._get_backend, "_backend"):
-        delattr(UMPA.model._get_backend, "_backend")
+    UMPA.model._BACKEND = None
 
 
 class JuliaBackendTest(unittest.TestCase):
