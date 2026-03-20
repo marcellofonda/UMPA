@@ -290,7 +290,7 @@ class UMPAModelBase:
 
     def coverage(self, step=None, ROI=None):
         s0, s1 = self._convert_ROI_slice(ROI, step)
-        coverage = self._get_full_results(True)["coverage"]
+        coverage = self._get_full_results(False)["coverage"]
         return self._slice_output(coverage, s0, s1)
 
     def coords(self, ROI=None):

@@ -17,10 +17,14 @@ class JuliaBackendTest(unittest.TestCase):
             _reset_backend()
             sample = np.ones((2, 10, 10), dtype=float)
             ref = np.ones((2, 10, 10), dtype=float) * 2
-            model = UMPA.model.UMPAModelDF(sample, ref, window_size=0, max_shift=0)
+            model = UMPA.model.UMPAModelDF(sample, ref, window_size=1, max_shift=1)
             result = model.match(step=2)
             self.assertIn("df", result)
-            self.assertEqual(result["T"].shape, (5, 5))
+            expected_shape = (
+                1 + (model.extent[0] - 1) // 2,
+                1 + (model.extent[1] - 1) // 2,
+            )
+            self.assertEqual(result["T"].shape, expected_shape)
             self.assertAlmostEqual(result["T"][0, 0], 0.5)
             coverage = model.coverage(step=2)
             self.assertEqual(coverage.shape, result["T"].shape)
