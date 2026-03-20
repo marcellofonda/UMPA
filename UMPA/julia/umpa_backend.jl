@@ -17,9 +17,9 @@ function _accumulate(frames, masks, positions, full_shape)
     for idx in eachindex(frames)
         frame = Array(frames[idx])
         pos = positions[idx, :]
+        # Convert from Python's 0-based positions to Julia's 1-based indices.
         y0 = Int(round(pos[1])) + 1
         x0 = Int(round(pos[2])) + 1
-        # Convert from Python's 0-based positions to Julia's 1-based indices.
         h, w = size(frame)
         y1 = y0 + h - 1
         x1 = x0 + w - 1

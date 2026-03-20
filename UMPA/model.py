@@ -1,11 +1,11 @@
 import os
 import warnings
-from functools import lru_cache
 
 import numpy as np
 
 _DEBUG_D_SIZE = 25
 _DEBUG_A_SIZE = 16
+_JULIA_MAIN = None
 
 
 def _normalize_frames(frames, name):
@@ -104,7 +104,8 @@ class _PythonBackend:
             var_scale = float(np.max(var_r)) if var_r.size else 1.0
             var_scale = max(1.0, var_scale)
             var_floor = np.finfo(np.float64).eps * var_scale
-            df = np.sqrt(np.maximum(var_s, 0.0) / np.maximum(var_r, var_floor))
+            denom_var = var_r if not np.any(var_r <= 0) else np.maximum(var_r, var_floor)
+            df = np.sqrt(np.maximum(var_s, 0.0) / denom_var)
         return {
             "T": T,
             "dx": dx,
@@ -116,8 +117,10 @@ class _PythonBackend:
         }
 
 
-@lru_cache(maxsize=1)
 def _load_julia():
+    global _JULIA_MAIN
+    if _JULIA_MAIN is not None:
+        return _JULIA_MAIN
     from juliacall import Main as jl
 
     backend_path = os.path.join(os.path.dirname(__file__), "julia", "umpa_backend.jl")
@@ -128,7 +131,8 @@ def _load_julia():
             f"Failed to load Julia backend from {backend_path}. "
             "Ensure the Julia runtime is available and the file is valid."
         ) from exc
-    return jl
+    _JULIA_MAIN = jl
+    return _JULIA_MAIN
 
 
 class _JuliaBackend:
@@ -162,7 +166,7 @@ def _get_backend():
         return _get_backend._backend
     try:
         _get_backend._backend = _JuliaBackend()
-    except Exception as exc:
+    except (ImportError, RuntimeError, OSError) as exc:
         warnings.warn(f"Julia backend unavailable, falling back to NumPy. ({exc})")
         _get_backend._backend = _PythonBackend()
     return _get_backend._backend
