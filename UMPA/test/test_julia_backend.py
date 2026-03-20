@@ -8,7 +8,7 @@ import UMPA
 
 
 def _reset_backend():
-    UMPA.model._BACKEND = None
+    UMPA.model.reset_backend()
 
 
 class JuliaBackendTest(unittest.TestCase):

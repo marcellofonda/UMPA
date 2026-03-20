@@ -123,7 +123,10 @@ def _load_julia():
         return _JULIA_MAIN
     from juliacall import Main as jl
 
-    backend_path = os.path.join(os.path.dirname(__file__), "julia", "umpa_backend.jl")
+    backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "julia"))
+    backend_path = os.path.abspath(os.path.join(backend_dir, "umpa_backend.jl"))
+    if not backend_path.startswith(backend_dir + os.sep):
+        raise RuntimeError("Resolved Julia backend path is outside the package directory.")
     try:
         jl.include(backend_path)
     except Exception as exc:
@@ -159,6 +162,7 @@ class _JuliaBackend:
 
 
 def _get_backend():
+    """Return the active backend; set UMPA_DISABLE_JULIA=1 to force NumPy."""
     global _BACKEND
     if _BACKEND is not None:
         return _BACKEND
@@ -171,6 +175,12 @@ def _get_backend():
         warnings.warn(f"Julia backend unavailable, falling back to NumPy. ({exc})")
         _BACKEND = _PythonBackend()
     return _BACKEND
+
+
+def reset_backend():
+    global _BACKEND, _JULIA_MAIN
+    _BACKEND = None
+    _JULIA_MAIN = None
 
 
 class UMPAModelBase:

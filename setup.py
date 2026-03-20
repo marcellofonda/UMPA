@@ -25,5 +25,5 @@ if __name__ == "__main__":
           #url=URL,
           license=LICENSE,
           include_package_data=True,
-          package_data={SRC_DIR: ['julia/*.jl', 'test/logo.npy']}
+          package_data={"UMPA": ['julia/*.jl', 'test/logo.npy']}
           )
