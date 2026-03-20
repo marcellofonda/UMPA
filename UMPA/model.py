@@ -189,7 +189,7 @@ class UMPAModelBase:
         self._window = self._make_window(self._Nw)
         self._set_padding()
         self._set_ROI(ROI)
-        self.assign_coordinates = "ref"
+        self._assign_coordinates = "ref"
         self.shift_mode = False
         self.sub_pixel_mode = -1
 
@@ -336,7 +336,7 @@ class UMPAModelBase:
     @assign_coordinates.setter
     def assign_coordinates(self, new_mode):
         if new_mode not in ("sam", "ref"):
-            return
+            raise ValueError(f"assign_coordinates must be 'sam' or 'ref', got {new_mode!r}.")
         self._assign_coordinates = new_mode
 
     @property
