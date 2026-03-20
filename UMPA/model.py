@@ -162,7 +162,7 @@ class _JuliaBackend:
 
 
 def _get_backend():
-    """Return the active backend; set UMPA_DISABLE_JULIA=1 to force NumPy."""
+    """Return the active backend instance (_JuliaBackend or _PythonBackend); set UMPA_DISABLE_JULIA=1 to force NumPy."""
     global _BACKEND
     if _BACKEND is not None:
         return _BACKEND

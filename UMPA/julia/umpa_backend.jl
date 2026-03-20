@@ -17,8 +17,8 @@ function _accumulate(frames, masks, positions, full_shape)
     for idx in eachindex(frames)
         frame = Array(frames[idx])
         pos = positions[idx, :]
-        # Positions from Python are 0-based row/col values stored at pos[1]/pos[2];
-        # add 1 to map them to Julia's 1-based indices.
+        # Positions from Python are 0-based row/col values (pos[0], pos[1]);
+        # in Julia these arrive as pos[1]/pos[2], so add 1 to map to 1-based indices.
         y0 = Int(round(pos[1])) + 1
         x0 = Int(round(pos[2])) + 1
         h, w = size(frame)
